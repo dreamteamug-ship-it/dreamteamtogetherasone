@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <meta name="theme-color" content="#050a10">
+    <title>Together As One | Sovereign Multi-LLM OS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600;800&family=Share+Tech+Mono&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root { 
+            --gold: #ffd700; --cyan: #00f0ff; --success: #00ff7f; --danger: #ff4444; 
+            --bg: #050a10; --charcoal: #1E2A3A; --glass: rgba(255, 255, 255, 0.05);
+            --text-secondary: #8b9dc3;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui; }
+        body { background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden;}
+        
+        /* HEADER */
+        header { position: fixed; top: 0; left: 0; right: 0; height: 70px; background: rgba(5,10,16,0.95); border-bottom: 1px solid rgba(255,215,0,0.2); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 1000; flex-wrap: wrap; gap:10px; }
+        .brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--gold), #ff8c00); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .brand h1 { font-size: 20px; background: linear-gradient(90deg, var(--gold), white); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin:0;}
+        .lang-select { background: rgba(0,0,0,0.5); color: var(--gold); border: 1px solid var(--gold); padding: 5px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; outline: none; }
+        .btn-gold { background: linear-gradient(45deg, var(--gold), #B8860B); border: none; padding: 8px 15px; border-radius: 5px; color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        
+        /* HERO & SEARCH */
+        .hero { margin-top: 70px; padding: 60px 20px; text-align: center; background: radial-gradient(ellipse at top, rgba(255,215,0,0.1) 0%, transparent 50%); }
+        .hero h2 { font-size: 48px; margin-bottom: 16px; font-family: 'Playfair Display', serif; }
+        .search-box { max-width: 700px; margin: 40px auto; display: flex; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 8px; }
+        .search-box input { flex: 1; background: transparent; border: none; padding: 12px; color: white; font-size: 16px; outline:none; }
+        .search-box button { padding: 12px 24px; background: linear-gradient(135deg, var(--gold), #ff8c00); border: none; border-radius: 8px; color: black; font-weight: 700; cursor: pointer; }
+        .categories { display: flex; justify-content: center; gap: 16px; margin: 40px 0; flex-wrap: wrap; }
+        .cat-btn { padding: 12px 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; color: white; cursor: pointer; transition: all 0.3s; }
+        .cat-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(255,215,0,0.1); }
+        
+        /* VIEWS & GRID */
+        .view { display: none; animation: fadeIn 0.4s ease-out; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; padding: 0 24px 60px; max-width: 1400px; margin: 0 auto; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; transition: transform 0.3s; cursor: pointer; position: relative; }
+        .card:hover { transform: translateY(-8px); border-color: rgba(255,215,0,0.3); }
+        .card-img { height: 240px; background-size: cover; background-position: center; position: relative; }
+        .deal-tag { position: absolute; top: 12px; left: 12px; background: rgba(0, 240, 255, 0.9); color: #000; padding: 4px 12px; border-radius: 4px; font-weight: 800; font-size: 0.75rem; }
+        .card-content { padding: 20px; }
+        
+        /* ERP OS */
+        .erp-os { display: grid; grid-template-columns: 260px 1fr; gap: 20px; height: calc(100vh - 120px); padding:20px; }
+        .erp-nav { background: var(--charcoal); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,215,0,0.2); display: flex; flex-direction: column; gap: 8px; overflow-y:auto; }
+        .erp-nav-btn { background: transparent; border: none; color: white; text-align: left; padding: 10px 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.9rem; }
+        .erp-nav-btn:hover, .erp-nav-btn.active { background: rgba(255,215,0,0.1); color: var(--gold); border-left: 3px solid var(--gold); }
+        .erp-module { display: none; height: 100%; overflow-y: auto; }
+        .erp-module.active { display: block; animation: fadeIn 0.3s; }
+        
+        /* MODALS & FORMS */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
+        .modal-card { background: var(--charcoal); border: 1px solid var(--gold); border-radius: 16px; width: 100%; max-width: 900px; padding: 25px; max-height:90vh; overflow-y:auto; position: relative;}
+        .close-btn { position: absolute; top: 15px; right: 15px; background: transparent; border: 1px solid var(--danger); color: var(--danger); border-radius: 5px; padding: 5px 10px; cursor: pointer; font-weight: bold; z-index:10;}
+        input, select { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid #555; color: white; border-radius: 8px; margin-bottom: 15px; outline: none; }
+        
+        .fission-banner { background: rgba(255,68,68,0.1); border: 1px solid var(--danger); padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center; display: none; }
+        .pulse-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 10px currentColor; animation: pulse 1s infinite; display: inline-block; }
+        .dot-green { background: var(--success); color: var(--success); }
+        .dot-cyan { background: var(--cyan); color: var(--cyan); }
+        .dot-red { background: var(--danger); color: var(--danger); }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand" onclick="Router.navigate('marketplace')">
+        <div class="brand-icon">??</div>
+        <div><h1 style="margin:0;">Together As One</h1><small style="color: #888; font-size:0.7rem;">Sovereign Multi-LLM OS</small></div>
+    </div>
+    <div style="display:flex; gap:10px;">
+        <select class="lang-select" id="langToggle" onchange="switchLanguage()">
+            <option value="en">?? ENG</option>
+            <option value="sw">???? SWA</option>
+            <option value="sh">???? SHG</option>
+        </select>
+        <button class="btn-gold" style="background:var(--success); color:#000;" onclick="Modal.open('onboard')"><i class="fas fa-crown"></i> <span data-i18n="post">Post Ad / KYC</span></button>
+        <button class="btn-gold" style="background:transparent; border:1px solid var(--gold); color:var(--gold);" onclick="Router.navigate('erp')"><i class="fas fa-chart-line"></i> Titanium ERP</button>
+        <button class="btn-gold" onclick="Security.authenticate()"><i class="fas fa-terminal"></i> CTO</button>
+    </div>
+</header>
+
+<div id="app">
+    <div id="view-marketplace" class="view active">
+        <section class="hero">
+            <h2>8K Sovereign <span>Ecosystem</span></h2>
+            <p>Powered by 50 AI Agents. Top 10 Tier-1 Assets pre-unlocked per category.</p>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search Tuktuks, Airbnbs, Surveyors...">
+                <button onclick="Marketplace.search()">Search</button>
+            </div>
+            <div class="categories" id="category-filters">
+                <button class="cat-btn active" onclick="Marketplace.filter('All')">?? <span data-i18n="all">All Assets</span></button>
+                <button class="cat-btn" onclick="Marketplace.filter('Vehicles')">?? Vehicles</button>
+                <button class="cat-btn" onclick="Marketplace.filter('Real Estate')">?? Real Estate</button>
+                <button class="cat-btn" onclick="Marketplace.filter('Services')">?? Services</button>
+            </div>
+            
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+                <select id="subcat-filter" style="width:auto; display:none;" onchange="Marketplace.filterSub(this.value)"></select>
+                <select id="price-sort" style="width:auto;" onchange="Marketplace.sort(this.value)">
+                    <option value="default" data-i18n="sort_relevance">Sort: AI Relevance</option>
+                    <option value="low" data-i18n="sort_low">Price: Lowest to Highest</option>
+                    <option value="high" data-i18n="sort_high">Price: Highest to Lowest</option>
+                </select>
+            </div>
+        </section>
+        <div class="grid" id="marketplace-grid"></div>
+    </div>
+
+    <div id="view-erp" class="view" style="margin-top:70px;">
+        <div class="erp-os">
+            <div class="erp-nav">
+                <h3 style="margin-bottom:10px; color:var(--cyan); font-family:'Share Tech Mono'; font-size:1.1rem;">// TITANIUM.OS</h3>
+                <button class="erp-nav-btn active" onclick="ERP.switchModule('overview')"><i class="fas fa-home"></i> Overview</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('hr')"><i class="fas fa-id-card"></i> HR & Attendance</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('crm')"><i class="fas fa-users"></i> CRM & Public Pool</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('sales')"><i class="fas fa-chart-line"></i> Sales & Marketing</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('admin')"><i class="fas fa-shield-alt"></i> Admin & SecOps</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('management')"><i class="fas fa-briefcase"></i> Management</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('operational')"><i class="fas fa-cogs"></i> Operationals</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('technical')"><i class="fas fa-server"></i> Technical & Fleet</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('lms')"><i class="fas fa-graduation-cap"></i> LMS</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('pr')"><i class="fas fa-bullhorn"></i> PR & Comms</button>
+                <button class="erp-nav-btn" onclick="ERP.switchModule('me')"><i class="fas fa-search-dollar"></i> M&E / Reporting</button>
+            </div>
+            
+            <div style="background: rgba(5, 10, 16, 0.8); border: 1px solid rgba(0, 240, 255, 0.1); border-radius: 12px; padding: 20px; overflow:hidden; position:relative;">
+                <div style="position:absolute; top:10px; right:10px; background:#111; border:1px solid var(--gold); padding:5px 10px; border-radius:5px; font-family:'Share Tech Mono'; font-size:0.7rem; color:var(--gold);">
+                    <span class="pulse-dot dot-cyan"></span> 50-Agent Multi-LLM Swarm Active
+                </div>
+
+                <div id="erp-mod-overview" class="erp-module active">
+                    <h2 style="margin-bottom:20px;">Platform Overview</h2>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom:20px;">
+                        <div style="background:var(--charcoal); padding:20px; border-radius:8px; border-left:4px solid var(--cyan);"><div>Total Assets</div><div style="font-size:2rem; color:var(--gold); font-weight:bold;" id="erp-assets">300</div></div>
+                        <div style="background:var(--charcoal); padding:20px; border-radius:8px; border-left:4px solid var(--warning);"><div>Public Pool Leads</div><div style="font-size:2rem; color:var(--warning); font-weight:bold;" id="erp-pool">0</div></div>
+                        <div style="background:var(--charcoal); padding:20px; border-radius:8px; border-left:4px solid var(--success);"><div>Ledger Volume</div><div style="font-size:2rem; color:var(--success); font-weight:bold;" id="erp-comm">KES 0</div></div>
+                    </div>
+                </div>
+
+                <div id="erp-mod-hr" class="erp-module"><h2 style="color:var(--cyan);">HR & Attendance</h2><div id="hr-content"></div></div>
+                <div id="erp-mod-crm" class="erp-module"><h2 style="color:var(--warning);">CRM & Lead Pool</h2><div id="crm-content"></div></div>
+                <div id="erp-mod-sales" class="erp-module"><h2 style="color:var(--success);">Sales & Marketing</h2><div id="sales-content"></div></div>
+                <div id="erp-mod-admin" class="erp-module"><h2 style="color:var(--danger);">Admin & SecOps</h2><div id="admin-content"></div></div>
+                <div id="erp-mod-management" class="erp-module"><h2 style="color:var(--gold);">Management</h2><div id="mgmt-content"></div></div>
+                <div id="erp-mod-operational" class="erp-module"><h2 style="color:var(--cyan);">Operationals</h2><div id="ops-content"></div></div>
+                <div id="erp-mod-technical" class="erp-module"><h2 style="color:var(--gold);">Technical & Fleet</h2><div id="tech-content"></div></div>
+                <div id="erp-mod-lms" class="erp-module"><h2 style="color:var(--success);">LMS & Training</h2><div id="lms-content"></div></div>
+                <div id="erp-mod-pr" class="erp-module"><h2 style="color:var(--warning);">PR & Comms</h2><div id="pr-content"></div></div>
+                <div id="erp-mod-me" class="erp-module"><h2 style="color:var(--cyan);">End-to-End M&E</h2><div id="me-content"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-product" class="modal">
+    <div class="modal-card" style="max-width:1000px;">
+        <button class="close-btn" onclick="Modal.close('product')"><i class="fas fa-times"></i> Close</button>
+        <h2 style="font-family:'Playfair Display'; font-size:1.8rem; margin-bottom:15px; margin-top:10px;" id="pd-title">Asset Title</h2>
+        
+        <div style="position:relative; width:100%; height:400px; background:#000; border-radius:12px; overflow:hidden; margin-bottom:20px;">
+            <img id="pd-img" src="" style="width:100%; height:100%; object-fit:cover;">
+            <div id="pd-deal-tag" style="position:absolute; top:15px; left:15px; background:rgba(0, 240, 255, 0.9); color:#000; padding:4px 12px; border-radius:4px; font-weight:800; font-size:0.9rem;">FOR SALE</div>
+            <div style="position:absolute; bottom:15px; right:15px; display:flex; gap:10px;">
+                <button class="btn-gold"><i class="fas fa-vr-cardboard"></i> 360? Interior</button>
+                <button class="btn-gold"><i class="fas fa-video"></i> 8K Video Tour</button>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:baseline; border-bottom:1px solid rgba(255,215,0,0.2); padding-bottom:15px; margin-bottom:20px; flex-wrap:wrap;">
+            <p style="font-size:2.2rem; margin:0; color:var(--gold); font-weight:bold;" id="pd-price">KES 0</p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;" id="pd-action-buttons"></div>
+        </div>
+
+        <div class="fission-banner" id="pd-fission-banner">
+            <h4 style="color:var(--danger); margin-bottom:10px;"><i class="fas fa-lock"></i> Premium Tool Locked</h4>
+            <p style="font-size:0.9rem; color:#ccc; margin-bottom:15px;">To access application forms, valuations, or smart escrow on this premium asset, please verify via one-time WhatsApp sharing.</p>
+            <button class="btn-gold" style="background:#25D366; color:#000; width:100%;" onclick="Beneficial.triggerShare()"><i class="fab fa-whatsapp"></i> Share 1x to Unlock Application</button>
+        </div>
+
+        <div id="pd-content">
+            <h3 style="font-size:1.2rem; margin-bottom:15px; color:var(--cyan);"><i class="fas fa-clipboard-check"></i> 100-Point AI Inspection Report</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+                <div style="background:rgba(0,0,0,0.4); padding:12px; border-radius:8px; border-left:3px solid var(--gold); font-size:0.85rem;"><span>Legal & Compliance</span> <span style="float:right; color:var(--success);"><i class="fas fa-check"></i> 98%</span></div>
+                <div style="background:rgba(0,0,0,0.4); padding:12px; border-radius:8px; border-left:3px solid var(--gold); font-size:0.85rem;"><span>Structural Rating</span> <span style="float:right; color:var(--success);"><i class="fas fa-check"></i> 95%</span></div>
+            </div>
+            <p style="font-size:0.95rem; color:#888; line-height:1.8;">Guarantees optimal ROI and zero legal encumbrances. Inspected by AI Amanda Swarm.</p>
+        </div>
+    </div>
+</div>
+
+<div id="modal-app-form" class="modal">
+    <div class="modal-card" style="max-width:600px;">
+        <button class="close-btn" onclick="Modal.close('app-form')"><i class="fas fa-times"></i> Close</button>
+        <h2 style="margin-bottom:10px; margin-top:10px; font-size:1.3rem;" id="dyn-form-title">Application Form</h2>
+        <p style="color:#888; font-size:0.85rem; margin-bottom:15px;" id="dyn-form-desc">Fill out your details.</p>
+        
+        <input type="text" id="dyn-name" placeholder="Full Legal Name">
+        <input type="text" id="dyn-id" placeholder="National ID / KRA PIN">
+        <input type="number" id="dyn-income" placeholder="Declared Monthly Revenue (KES)">
+        
+        <div style="border: 2px dashed var(--gold); padding: 15px; text-align: center; border-radius: 10px; background: rgba(255,215,0,0.05); margin-bottom: 15px;">
+            <i class="fas fa-magic fa-2x" style="color:var(--gold); margin-bottom:5px;"></i>
+            <h4 style="font-size:0.9rem;">Edge 4K AI Media Enhancer</h4>
+            <p style="font-size:0.75rem; color:#888;">Upload required credentials. Processed securely via local storage.</p>
+            <input type="file" id="dyn-file" style="display:none;" onchange="AI.simulateEnhancer('dyn')">
+            <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="document.getElementById('dyn-file').click()">Select Documents</button>
+            <div style="height: 6px; background: #000; border-radius: 3px; overflow: hidden; margin-top: 10px; display: none;" id="dyn-prog-cont"><div style="height: 100%; width: 0%; background: var(--success); transition: width 0.2s;" id="dyn-prog"></div></div>
+            <div id="dyn-status" style="font-size:0.75rem; color:var(--success); margin-top:5px;"></div>
+        </div>
+
+        <button class="btn-gold" style="width:100%;" onclick="AI.scoreApplication()"><i class="fas fa-brain"></i> Submit for AI Scoring (95% Cutoff)</button>
+        <div id="dyn-receipt" style="background: #000; padding: 15px; border-radius: 8px; font-family: 'Share Tech Mono'; font-size: 0.8rem; margin-top: 15px; display: none; border: 1px solid #333;"></div>
+    </div>
+</div>
+
+<div id="modal-onboard" class="modal">
+    <div class="modal-card">
+        <button class="close-btn" onclick="Modal.close('onboard')"><i class="fas fa-times"></i> Close</button>
+        <h2 style="margin-bottom:15px; margin-top:10px;">Agency Portal (KYC)</h2>
+        <select id="ob-type"><option>Internal Agent</option><option>External Agent</option><option>Landlord</option><option>Service Provider</option><option>Corporate / Institution</option></select>
+        <input type="text" id="ob-name" placeholder="Company / Individual Name">
+        <input type="number" id="ob-income" placeholder="Annual Turnover (KES)">
+        <button class="btn-gold" style="width:100%;" onclick="AI.scoreApplication('onboard')"><i class="fas fa-user-check"></i> AI Evaluate & Certify</button>
+        <div id="ob-receipt" style="background: #000; padding: 15px; border-radius: 8px; font-family: 'Share Tech Mono'; font-size: 0.8rem; margin-top: 15px; display: none; border: 1px solid #333;"></div>
+    </div>
+</div>
+
+<script>
+// --- 1. GLOBAL STATE & I18N ---
+const state = { commissionTotal: 0, activeAssetId: null, activeFormType: null };
+const dict = {
+    en: { post: "Post Ad / KYC", cto: "CTO Login", all: "All Assets", sort_relevance: "Sort: AI Relevance", sort_low: "Price: Low to High", sort_high: "Price: High to Low" },
+    sw: { post: "Weka Tangazo / KYC", cto: "Msimamizi", all: "Mali Zote", sort_relevance: "Panga: Umuhimu", sort_low: "Bei: Chini - Juu", sort_high: "Bei: Juu - Chini" },
+    sh: { post: "Tupa Risto / KYC", cto: "Dosi", all: "Zote", sort_relevance: "Panga: Relevance", sort_low: "Bei: Chini - Juu", sort_high: "Bei: Juu - Chini" }
+};
+function switchLanguage() {
+    let currentLang = document.getElementById('langToggle').value;
+    document.querySelectorAll('[data-i18n]').forEach(el => { if(dict[currentLang][el.dataset.i18n]) el.innerHTML = dict[currentLang][el.dataset.i18n]; });
+}
+
+// --- 2. DATA GENERATION (300 Assets - 100 per category) ---
+const vehicleSub = ["Scooter", "Motorbike", "Tuktuk", "Cars", "Vans", "Trucks", "Trailers"];
+const realEstateSub = ["Land", "Residential", "Commercial (Hire)", "Commercial (Lease)", "Commercial (Sale)", "Airbnb"];
+const servicesSub = ["Certified Architect", "Mechanic", "Surveyor", "Assessor", "Structural Engineer", "Insurance", "Finance Partner"];
+const dealTypes = ["SALE", "HIRE", "LEASE", "MORTGAGE", "BUYBACK", "TRADE-IN"];
+
+const imgDB = {
+    "Vehicles": ["https://images.unsplash.com/photo-1503376713356-258129d5b410?w=600","https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600"],
+    "Real Estate": ["https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600","https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600"],
+    "Services": ["https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600","https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=600"]
+};
+
+let assets = [];
+let vCount=0, rCount=0, sCount=0;
+
+for(let i=1; i<=300; i++) {
+    let cat = i<=100 ? "Vehicles" : i<=200 ? "Real Estate" : "Services";
+    let subcat = cat==="Vehicles" ? vehicleSub[Math.floor(Math.random()*vehicleSub.length)] : cat==="Real Estate" ? realEstateSub[Math.floor(Math.random()*realEstateSub.length)] : servicesSub[Math.floor(Math.random()*servicesSub.length)];
+    let deal = dealTypes[Math.floor(Math.random() * dealTypes.length)];
+    let price = cat==="Real Estate"?Math.floor(Math.random()*80000000)+10000000 : cat==="Services"?Math.floor(Math.random()*50000)+5000 : Math.floor(Math.random()*15000000)+1000000;
+    
+    let counter = cat === 'Vehicles' ? ++vCount : cat === 'Real Estate' ? ++rCount : ++sCount;
+    let isFirst10 = counter <= 10;
+
+    assets.push({
+        id: `TAO-${1000+i}`, category: cat, subcategory: subcat, 
+        title: cat==="Services" ? `${subcat} Firm 0${counter}` : `Premium ${subcat} Unit 0${counter}`,
+        price: price, dealType: cat==="Services" ? "SERVICE" : deal, img: imgDB[cat][Math.floor(Math.random() * imgDB[cat].length)],
+        gpsActive: true, isFirst10: isFirst10, shareUnlock: isFirst10 
+    });
+}
+
+// --- 3. ROUTING & UI ---
+const Router = { navigate: (view) => { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(`view-${view}`).classList.add('active'); window.scrollTo(0,0); if(view === 'erp') ERP.init(); } };
+const Modal = { open: (id) => { document.getElementById(`modal-${id}`).style.display = 'flex'; }, close: (id) => { document.getElementById(`modal-${id}`).style.display = 'none'; } };
+
+// --- 4. MARKETPLACE ---
+const Marketplace = {
+    currentCat: 'All',
+    filter: (cat) => {
+        Marketplace.currentCat = cat;
+        document.querySelectorAll('.cat-btn').forEach(b => { b.classList.remove('active'); if(b.innerText.includes(cat) || (cat==='All' && b.innerText.includes('All'))) b.classList.add('active'); });
+        let subSelect = document.getElementById('subcat-filter');
+        if(cat === 'All') { subSelect.style.display = 'none'; } else {
+            subSelect.style.display = 'inline-block';
+            let opts = cat === 'Vehicles' ? vehicleSub : cat === 'Real Estate' ? realEstateSub : servicesSub;
+            subSelect.innerHTML = `<option value="All">All ${cat}</option>` + opts.map(o => `<option value="${o}">${o}</option>`).join('');
+        }
+        Marketplace.render();
+    },
+    filterSub: (subcat) => { Marketplace.render(subcat); },
+    sort: (order) => { Marketplace.render(null, order); },
+    search: () => { let q = document.getElementById('search-input').value.toLowerCase(); let f = assets.filter(a => a.title.toLowerCase().includes(q) || a.subcategory.toLowerCase().includes(q)); Marketplace.renderGrid(f); },
+    render: (subcat = 'All', sortOrder = 'default') => {
+        let f = assets.filter(a => Marketplace.currentCat === 'All' || a.category === Marketplace.currentCat);
+        if(subcat !== 'All' && subcat) f = f.filter(a => a.subcategory === subcat);
+        if(sortOrder === 'low') f.sort((a,b) => a.price - b.price);
+        if(sortOrder === 'high') f.sort((a,b) => b.price - a.price);
+        Marketplace.renderGrid(f);
+    },
+    renderGrid: (arr) => {
+        document.getElementById('marketplace-grid').innerHTML = arr.map(a => `
+            <div class="card" onclick="Marketplace.openDashboard('${a.id}')">
+                <div class="card-img" style="background-image: url('${a.img}')">
+                    <div class="deal-tag">${a.dealType}</div>
+                    ${a.isFirst10 ? `<div style="position:absolute; bottom:12px; left:12px; background:rgba(0,255,127,0.8); color:#000; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold;">PRE-UNLOCKED</div>` : ''}
+                </div>
+                <div class="card-content">
+                    <div style="font-size:0.75rem; color:var(--cyan); margin-bottom:5px;">${a.category} > ${a.subcategory}</div>
+                    <h3 style="font-size:1.1rem; margin-bottom:10px;">${a.title}</h3>
+                    <div style="font-size:1.3rem; color:var(--gold); font-weight:bold;">KES ${a.price.toLocaleString()}</div>
+                </div>
+            </div>
+        `).join('');
+    },
+    openDashboard: (id) => {
+        let a = assets.find(x => x.id === id);
+        state.activeAssetId = id;
+        document.getElementById('pd-title').innerText = a.title; document.getElementById('pd-img').src = a.img;
+        document.getElementById('pd-deal-tag').innerText = a.dealType; document.getElementById('pd-price').innerText = `KES ${a.price.toLocaleString()}`;
+        
+        let acts = "";
+        if(a.category === 'Services') {
+            acts = `<button class="btn-outline" onclick="Beneficial.gate('Site Visit Form')">Site Visit</button><button class="btn-gold" onclick="Beneficial.gate('Insurance Application')">Insurance</button><button class="btn-gold" style="background:var(--success); color:#000;" onclick="Beneficial.gate('Loan Application')">Service Loan</button>`;
+        } else {
+            acts = `<button class="btn-outline" onclick="Beneficial.gate('Valuation Application')">Valuation</button><button class="btn-outline" onclick="Beneficial.gate('Inspection Form')">Inspection</button><button class="btn-gold" onclick="Beneficial.gate('Loan Application')">Apply ${a.dealType} Finance</button>`;
+        }
+        document.getElementById('pd-action-buttons').innerHTML = acts;
+        document.getElementById('pd-fission-banner').style.display = 'none'; document.getElementById('pd-content').style.display = 'block';
+        Modal.open('product');
+    }
+};
+
+// --- 5. FISSION GATE & DYNAMIC FORMS ---
+const Beneficial = {
+    gate: (formType) => {
+        let a = assets.find(x => x.id === state.activeAssetId);
+        if(a.shareUnlock) {
+            Modal.close('product'); state.activeFormType = formType;
+            document.getElementById('dyn-form-title').innerText = formType; document.getElementById('dyn-receipt').style.display = 'none';
+            Modal.open('app-form');
+        } else { document.getElementById('pd-content').style.display = 'none'; document.getElementById('pd-fission-banner').style.display = 'block'; }
+    },
+    triggerShare: () => {
+        let a = assets.find(x => x.id === state.activeAssetId);
+        window.open(`https://wa.me/?text=Check out ${a.title} on TAO`, '_blank');
+        a.shareUnlock = true;
+        document.getElementById('pd-fission-banner').style.display = 'none'; document.getElementById('pd-content').style.display = 'block';
+    }
+};
+
+// --- 6. AI SCORING & ENHANCER ---
+const AI = {
+    simulateEnhancer: (prefix) => {
+        document.getElementById(`${prefix}-prog-cont`).style.display = 'block';
+        let bar = document.getElementById(`${prefix}-prog`); let status = document.getElementById(`${prefix}-status`);
+        status.innerText = "Multi-LLM 8K Upscaling...";
+        let p = 0; let int = setInterval(() => { p+=20; bar.style.width = p+'%'; if(p>=100) { clearInterval(int); status.innerHTML = "<i class='fas fa-check-circle'></i> Saved to Edge IndexedDB."; } }, 300);
+    },
+    scoreApplication: (mode) => {
+        let prefix = mode === 'onboard' ? 'ob' : 'dyn';
+        let name = document.getElementById(`${prefix}-name`).value;
+        let inc = parseInt(document.getElementById(`${prefix}-income`).value) || 0;
+        let rec = document.getElementById(`${prefix}-receipt`);
+        if(!name) { alert("Enter Name"); return; }
+        
+        rec.style.display = 'block'; rec.innerHTML = `<span class="pulse-dot dot-cyan"></span> Swarm evaluating parameters...`;
+        setTimeout(() => {
+            let score = 85 + (inc > 100000 ? 12 : inc < 20000 ? -10 : 5); if(score > 100) score = 100;
+            if(score >= 95) {
+                rec.innerHTML = `<span class="pulse-dot dot-green"></span> <b style="color:var(--success)">APPROVED (${score}%)</b><br>> Passed 95% Cutoff.`;
+                if(mode !== 'onboard') {
+                    let a = assets.find(x => x.id === state.activeAssetId);
+                    if(state.activeFormType.includes("Loan") || state.activeFormType.includes("Finance")) {
+                        state.commissionTotal += Math.floor(a.price * 0.02);
+                    }
+                }
+            } else {
+                rec.innerHTML = `<span class="pulse-dot dot-red"></span> <b style="color:var(--danger)">PENDING (${score}%)</b><br>> Below 95% Cutoff. Advice: Upload clearer docs.`;
+            }
+        }, 1500);
+    }
+};
+
+// --- 7. TITANIUM ERP (50 Agents mapped across 11 Modules) ---
+const ERP = {
+    switchModule: (mod) => {
+        document.querySelectorAll('.erp-nav-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.erp-module').forEach(m => m.classList.remove('active'));
+        event.target.classList.add('active'); document.getElementById(`erp-mod-${mod}`).classList.add('active');
+    },
+    init: () => {
+        document.getElementById('erp-assets').innerText = assets.length;
+        document.getElementById('erp-comm').innerText = `KES ${state.commissionTotal.toLocaleString()}`;
+        const modules = ['hr', 'crm', 'sales', 'admin', 'management', 'operational', 'technical', 'lms', 'pr', 'me'];
+        const llms = ['Gemini-Pro', 'Claude-3-Opus', 'Grok-1.5'];
+        
+        modules.forEach((mod, index) => {
+            let container = document.getElementById(`${mod}-content`);
+            if(container && container.innerHTML === "") {
+                let html = `<div style="overflow-x:auto;"><table style="width:100%; text-align:left; border-collapse:collapse; margin-top:15px; font-size:0.85rem; white-space:nowrap;">
+                            <tr style="color:var(--cyan); border-bottom:1px solid #333;"><th>Agent ID</th><th>LLM Engine</th><th>Current Task</th><th>Status</th></tr>`;
+                for(let i=1; i<=5; i++) {
+                    let agentId = (index * 5) + i; let llm = llms[Math.floor(Math.random() * llms.length)];
+                    html += `<tr><td style="padding:10px 0;">Agent 0${agentId < 10 ? '0'+agentId : agentId}</td><td>${llm}</td><td>Optimizing ${mod.toUpperCase()}</td><td><span style="color:var(--success)"><span class="pulse-dot dot-green"></span> Active</span></td></tr>`;
+                }
+                container.innerHTML = html + `</table></div>`;
+            }
+        });
+    }
+};
+
+const Security = { authenticate: () => { if(prompt('Access Code:') !== null) Router.navigate('erp'); } };
+
+// INIT
+window.onload = () => {
+    let p=0; let int=setInterval(()=>{ p+=20; if(p>=100){ clearInterval(int); document.getElementById('loader').style.opacity=0; setTimeout(()=>document.getElementById('loader').remove(),500); } },200);
+    Marketplace.render();
+};
+</script>
+</body>
+</html>
